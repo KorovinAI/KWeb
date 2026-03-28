@@ -1,0 +1,23 @@
+{
+  "skill_name": "git-manager",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I just finished updating a skill — added a fallback for when the primary source returns no results. The SKILL.md and .skill file are both updated. Commit and push this to github.",
+      "expected_output": "Skill runs pre-commit safety scan, reads the diff, generates a commit message describing the change, shows it to the user for confirmation, then stages the skill files and any associated MEMORY.md changes, commits, and pushes to the configured remote. Confirms success with files committed and push status.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "I need to roll back a SKILL.md to how it looked two weeks ago. The new version broke something.",
+      "expected_output": "Skill shows the user recent commits that touched the SKILL.md, identifies the commit from ~2 weeks ago, triggers the risky ops gate with a clear risk statement ('Overwrites current SKILL.md with version from [date/hash]. Current version lost unless committed.'), waits for YES confirmation, then runs the restore command. Does not proceed without explicit YES.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "I'm done for today. Wrap everything up.",
+      "expected_output": "Skill runs git status --short, detects any uncommitted changes, lists them clearly, generates a session-wrap commit message (e.g. 'session-wrap: 2026-03-19 — SKILL.md update + MEMORY.md changes'), shows it to the user, on confirmation stages all tracked files, commits, pushes to the configured remote, and confirms with a clean summary.",
+      "files": []
+    }
+  ]
+}

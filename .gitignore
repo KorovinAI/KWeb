@@ -1,0 +1,86 @@
+# macOS
+.DS_Store
+**/.DS_Store
+.AppleDouble
+.LSOverride
+
+# Output files — all generated deliverables (xlsx, csv, pdf, docx, pptx, html)
+output-files/
+
+# Secrets and credentials
+.env
+*.env
+**/.env
+**/secrets.*
+**/credentials.*
+**/token.*
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+.netrc
+
+# Large binaries
+*.mcpb
+*.zip
+*.bin
+*.tar.gz
+*.tar
+*.gz
+
+# Python environments
+venv/
+**/venv/
+.venv/
+**/.venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# Node
+node_modules/
+**/node_modules/
+.npm/
+
+# Skill scratch space
+**/workspace/
+**/scratch/
+
+# Web build artifacts
+dist/
+**/dist/
+_site/
+**/_site/
+.next/
+**/.next/
+.nuxt/
+**/.nuxt/
+.output/
+**/.output/
+.cache/
+**/.cache/
+.parcel-cache/
+.hugo_build.lock
+
+# Temp and generated outputs
+*.log
+*.tmp
+*.swp
+*.swo
+*~
+
+# IDE artifacts
+.idea/
+.vscode/
+*.code-workspace
+
+# Git internals
+*.orig
+*.rej
+MERGE_HEAD
+MERGE_MSG
