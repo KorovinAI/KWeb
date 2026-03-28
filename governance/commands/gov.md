@@ -35,7 +35,7 @@ Scan all folders and files for naming violations:
 - Folders must be lowercase, hyphen-separated
 - Skill names must be `[domain]-[action]` format, max 3 segments
 - Files must be lowercase, hyphen-separated
-- Only exceptions: `CLAUDE.md`, `MEMORY.md`, `SKILL.md`
+- Only exceptions: `CLAUDE.md`, `MEMORY.md`, `SKILL.md`, `README.md`
 - Check exemptions declared in root CLAUDE.md (currently: `output-files/`, `websites/`)
 
 ```bash
@@ -43,7 +43,7 @@ Scan all folders and files for naming violations:
 find . -type d -not -path './.git*' -not -path './websites*' -not -path './output-files*' -not -path './.claude*' | grep '[A-Z]' || echo "OK"
 
 # Find non-lowercase files (excluding system files)
-find . -type f -not -path './.git*' -not -path './websites*' -not -path './output-files*' -not -path './.claude*' -not -name 'CLAUDE.md' -not -name 'MEMORY.md' -not -name 'SKILL.md' -not -name '.DS_Store' | grep '[A-Z]' || echo "OK"
+find . -type f -not -path './.git*' -not -path './websites*' -not -path './output-files*' -not -path './.claude*' -not -name 'CLAUDE.md' -not -name 'MEMORY.md' -not -name 'SKILL.md' -not -name 'README.md' -not -name '.DS_Store' | grep '[A-Z]' || echo "OK"
 ```
 
 ### 2. Folder Structure (R2)

@@ -65,7 +65,7 @@ All lowercase. No exceptions except system files.
 - Skill subfolders: match the skill name (`email-cold/`, `call-prep/`)
 - Supporting subfolders: lowercase (`evals/`, `references/`, `assets/`)
 - Files: lowercase, hyphen-separated (`tone-guide.md`, `api-notes.md`)
-- **Only exceptions:** `CLAUDE.md`, `MEMORY.md`, `SKILL.md` — uppercase by system convention.
+- **Only exceptions:** `CLAUDE.md`, `MEMORY.md`, `SKILL.md`, `README.md` — uppercase by system convention.
 
 ### Exemptions
 

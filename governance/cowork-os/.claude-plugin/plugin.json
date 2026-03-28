@@ -1,8 +1,0 @@
-{
-  "name": "cowork-os",
-  "description": "Workspace setup, memory management, and subfolder creation for Claude Cowork.",
-  "version": "1.0.0",
-  "author": {
-    "name": "Paul J Lipsky"
-  }
-}
