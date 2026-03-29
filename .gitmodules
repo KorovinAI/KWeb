@@ -1,0 +1,6 @@
+[submodule "websites/hubspot-pages"]
+	path = websites/hubspot-pages
+	url = https://github.com/KorovinAI/hubspot-pages.git
+[submodule "websites/arianna-buratti-psychology"]
+	path = websites/arianna-buratti-psychology
+	url = https://github.com/KorovinAI/arianna-buratti-psychology.git
