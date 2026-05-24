@@ -4,3 +4,6 @@
 [submodule "websites/arianna-buratti-psychology"]
 	path = websites/arianna-buratti-psychology
 	url = https://github.com/KorovinAI/arianna-buratti-psychology.git
+[submodule "websites/agency"]
+	path = websites/agency
+	url = https://github.com/KorovinAI/agency.git
