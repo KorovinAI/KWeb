@@ -84,3 +84,6 @@ _site/
 *.rej
 MERGE_HEAD
 MERGE_MSG
+
+# Local Netlify folder
+.netlify
