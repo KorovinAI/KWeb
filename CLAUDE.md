@@ -1,6 +1,8 @@
 # KWeb — Website Building Workspace
 
-This is Ilia's website building shop. KWeb is where client websites are built, managed, and deployed via GitHub Pages. Each client project lives as a repo inside the `websites/` folder.
+This is Ilia's website building shop. KWeb is where client websites are built, managed, and deployed. Each client project lives as a repo inside the `websites/` folder.
+
+**Web build standard:** The default stack, hosting, database, architecture, SEO/AEO rules, capability modules, and two-tier delivery model for every client website are defined in [`web-stack.md`](./web-stack.md) at the workspace root. **Read it before starting or modifying any site in `websites/`.** It is the single source of truth for how Korovin AI builds websites — keep it updated (with rationale) when the stack evolves.
 
 ---
 
@@ -32,17 +34,52 @@ This folder contains a file called MEMORY.md. It is your external memory for thi
 
 ---
 
+## Local Testing & Deploy Discipline
+
+Hard-won lesson: Phase 3 of the agency site burned 20 production deploys debugging a routing issue that was reproducible — and fixable — locally. The build/test/push loop must stay local until the work is genuinely done. These rules apply to every client site in `websites/`.
+
+**Test locally before pushing — always.**
+- Build the production output locally first: `npm run build` (or stack equivalent).
+- Preview the production build locally. The dev server (`npm run dev`) is for editing, not verification — it does not match production behaviour. Production-equivalent preview by stack:
+  - **Next.js with `output: 'export'`** (static): `npx serve out`
+  - **Next.js with server runtime**: `npm run start`
+  - **Astro**: `npm run preview`
+  - Add more here as new stacks join the workspace.
+- If a route works against `localhost`, it'll work on the deployment platform 95%+ of the time. The remaining 5% is platform-specific bugs — diagnose those with discipline (below), not by push-and-check.
+
+**Push only at session end, not during.**
+- Iterative push-and-check cycles burn deployment quotas fast. Netlify's free tier allows ~300 build minutes / 20 deploys per month — one over-zealous debugging session can blow the entire budget.
+- Use `/wrap` to commit and push everything when work is done. Mid-session pushes should be rare and intentional.
+- Exception: a one-line fix you're 100% sure of (typo, env var) can push directly. Most debug cycles should NOT trigger a push.
+
+**Diagnostic discipline.**
+- When a deployed page misbehaves, reproduce it locally first by running the same production build (`npm run build`) and inspecting the output (e.g. `out/`, `.next/server/`, `dist/`).
+- If a diagnostic genuinely needs to run on the deployment infrastructure (rare), expose the diagnostic via rendered HTML that you can curl after deploy — not by adding `console.log` and trying to log-mine the platform.
+- Maximum one diagnostic push per debug session. If you're on a second, the local-verify process is broken; fix that process before deploying again.
+
+**Deploy budget per session: ≤ 2–3 production deploys.**
+- If a third is needed, stop and ask: what does my local setup not catch that the deploy does? Fix that gap first.
+- Use `[skip ci]` in commit messages for changes that don't need a deploy (docs, plans, READMEs). Netlify (and most platforms) read this header and skip the build:
+  ```
+  git commit -m "docs: update plan with session learnings [skip ci]"
+  ```
+
+**Stack-specific commands and gotchas** belong in each client's `websites/<client>/CLAUDE.md`. The principles above are stack-agnostic; the exact `npm` scripts and quirks vary per project.
+
+---
+
 ## Workspace Structure
 
-- **`websites/`** — Client website repos. Each client gets their own independent git repo here, connected to the root as a **git submodule**. Each repo has its own GitHub remote (typically `KorovinAI/<client-name>`) and is deployed via GitHub Pages.
+- **`websites/`** — Client website repos. Each client gets their own independent git repo here, connected to the root as a **git submodule**. Each repo has its own GitHub remote (typically `KorovinAI/<client-name>`) and is deployed per the web build standard (see [`web-stack.md`](./web-stack.md)).
 - **`governance/`** — Skills that govern how the workspace is organized, structured, and maintained. Meta-skills — they define conventions that other skills and workflows follow.
 - **`output-files/`** — Centralized dump for all generated deliverables (spreadsheets, PDFs, docs, decks, CSVs). Flat directory, self-documenting filenames (include client name + date).
+- **`web-stack.md`** — The web build standard: default stack, hosting, database, architecture, SEO/AEO rules, capability modules, and the two-tier delivery model. A living cross-project reference (not a dated deliverable). Read before any client website work; update it (with rationale) when the stack genuinely evolves.
 
 ## Git Architecture
 
 KWeb uses a two-level git structure:
 - **Root repo** (`KorovinAI/KWeb`, public) — tracks governance skills, workspace config, and submodule references.
-- **Client repos** (each in `websites/<client-name>/`) — independent repos connected as git submodules. Each has its own commit history, remote, and GitHub Pages deployment.
+- **Client repos** (each in `websites/<client-name>/`) — independent repos connected as git submodules. Each has its own commit history, remote, and deployment (hosting per [`web-stack.md`](./web-stack.md)).
 
 Changes inside a client site are committed in the submodule first, then the submodule reference is updated at root level. Always push submodules before pushing root. See the **git-manager** skill for full workflow details.
 
