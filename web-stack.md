@@ -100,6 +100,7 @@ Korovin AI is a **one-stop B2B growth agency**: build the site (simple → compl
 **Forms / lead capture** — *implemented; see §13.5*
 - `@payloadcms/plugin-form-builder` → `forms` + `form-submissions` collections. Leads stored **first-party in the client's DB** — viewable/exportable in `/admin`. **No CRM required** — this is the default.
 - **Email notification (Resend):** an `afterChange` hook on `form-submissions` emails every lead to the site's contact address, from `notifications@updates.<domain>`, **reply-to = the submitter**. So you get the lead in your inbox *and* own a DB copy.
+- **Auto-reply / confirmation (Resend):** a second `afterChange` hook emails the *enquirer* a branded "we got your message" (reply-to = the contact address). **CMS-editable** (enable toggle + subject + body with a `{{name}}` token, in Site Settings) so each client tunes copy without a deploy. ⚠️ **Gate behind Turnstile before promoting** — without spam protection it will email whatever address a bot submits (open-relay/abuse risk).
 - **Spam:** honeypot field (zero-dep, shipped) + Cloudflare **Turnstile** verified in a `beforeChange` hook (added per client).
 - **CRM (optional, per client):** an `afterChange` hook can also push to HubSpot (pass the `hubspotutk` cookie or attribution is lost), Pipedrive, Salesforce, or a generic webhook/Zapier.
 
@@ -200,6 +201,7 @@ app/
 - A "Contact" form (seeded). `ContactForm.tsx` renders its fields + a honeypot, POSTs `{ form, submissionData }` to `/api/form-submissions` (public create allowed; admin-only read).
 - `email: resendAdapter({ defaultFromAddress: 'notifications@updates.<domain>', defaultFromName, apiKey })`.
 - `leadNotification` (`afterChange`) emails the lead to Site Settings → Contact Email, reply-to the submitter, in a try/catch so mail failure never blocks the DB write.
+- `autoReply` (`afterChange`) emails the enquirer a branded confirmation, reply-to the contact address. Driven by a Site Settings → Auto-reply `group` (`enabled` checkbox, `subject`, `body` with `{{name}}`), with sensible code defaults. Same try/catch isolation. **Wire Turnstile before launch** (§8).
 
 ### 13.5b Roles & access control (implemented)
 - `access/roles.ts` exports `Access`/`FieldAccess` helpers: `anyone` (public read), `isAdmin`, `isAdminOrEditor`, `isAdminOrSelf` (admins → any user; others → own record only), `isAdminFieldLevel`. A user with no/unknown role is treated as least-privilege.

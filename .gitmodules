@@ -7,3 +7,6 @@
 [submodule "websites/agency"]
 	path = websites/agency
 	url = https://github.com/KorovinAI/agency.git
+[submodule "websites/findpsych"]
+	path = websites/findpsych
+	url = https://github.com/KorovinAI/findpsych.git
