@@ -1,10 +1,22 @@
 # KWeb Agency — Web Build Stack & Architecture Standard
 
-**Status:** Living standard · **Last updated:** 2026-06-02 · **Owner:** Ilia (Korovin AI)
+**Status:** Living standard · **Last updated:** 2026-06-15 · **Owner:** Ilia (Korovin AI)
 **Applies to:** Every client website built in `websites/`.
 **How to use this doc:** Read it before starting or modifying *any* client site. §1–12 are the *standard* (what/why). **§13 is the reference implementation + per-client setup checklist** (the how — what to actually copy to spin up a new site). Deviations are allowed but must have a documented reason. When the stack evolves, update this file (and note why).
 
 > Cross-checked against May 2026 market reality across four research rounds (CMS, hosting, database, SEO/AEO, future-proofing). **First reference build: the Korovin AI agency site itself** — `websites/agency/`, migrated to this stack May 2026 (see §13 and `output-files/korovinai-payload-migration-*`). **Now LIVE at `agency.korovin.ai`** (June 2026, on DigitalOcean) — the RBAC, CDN-cache, and admin-email fixes discovered during go-live are folded back into §8 and §13.5b/13.8/13.9.
+
+---
+
+## Projects completed
+
+A living record of sites delivered (most recent first). The Korovin AI agency site is the reference build of this standard; earlier projects predate it and use whatever stack fit at the time.
+
+| Project | URL | What it is | Stack | Status |
+|---|---|---|---|---|
+| **Korovin AI** *(reference build)* | [agency.korovin.ai](https://agency.korovin.ai) | The agency's own marketing site — canonical build of this standard | Payload CMS + Next 16 + MongoDB Atlas + DigitalOcean + Resend | ✅ Live (Jun 2026) |
+| **Arianna Buratti Psychology** | [ab-psych.com.au](https://ab-psych.com.au) | Private psychology practice (Carlton, Melbourne) — therapy, counselling, ADHD assessment, telehealth, Italian sessions | Astro on Netlify *(brochure; predates the standard stack)* | ✅ Live |
+| **MealSafe** *(Mytoxi)* | [app.mytoxi.com](https://app.mytoxi.com) | Meal-tracking web app for mould-illness recovery — "track your meals, protect your recovery" (user auth) | Web app *(stack: confirm)* | ✅ Live |
 
 ---
 
@@ -26,6 +38,7 @@ Korovin AI is a **one-stop B2B growth agency**: build the site (simple → compl
 | **Email** | **Resend** (transactional), from a `updates.<domain>` subdomain | Form notifications + auth mail. Free 3k/mo. Domain-auth via SPF/DKIM/MX. See §8 + §13. |
 | **Forms** | Payload Form Builder → leads in DB + Resend email (CRM optional) | Own the leads first-party; no CRM required. See §8. |
 | **Auth / RBAC** | Payload auth + a `role` field (admin/editor), enforced via access helpers | Owner-vs-editor split on every site (client edits content; agency keeps settings/users). See §8 + §13.5b. |
+| **Media storage** | **Cloudflare R2** (S3-compatible), via `@payloadcms/storage-s3` | Host filesystem is ephemeral — uploads must go to object storage. R2 = zero egress + free tier. See §13.10. |
 | **Spam** | Honeypot (now) + Cloudflare **Turnstile** (added per client) | Free, privacy-friendly. |
 | **Tracking** | PostHog (first-party proxy) + first-party event log + MS Clarity | Own visitor data; tie visitors → leads. See §8. |
 | **Chatbot** | Vercel AI SDK + Atlas Vector Search (RAG) | Reusable module, server-side. See §8. |
@@ -108,6 +121,12 @@ Korovin AI is a **one-stop B2B growth agency**: build the site (simple → compl
 - A `role` select field (`admin` | `editor`, default `editor`) on the `Users` collection, plus shared helpers in `access/roles.ts` (`isAdmin`, `isAdminOrEditor`, `isAdminOrSelf`, `isAdminFieldLevel`).
 - **admin** = full control (manage users, edit Site Settings, delete content). **editor** = create/edit content + media, view leads; *no* user management, *no* Site Settings, *no* delete. The role field itself is field-locked to admins (no self-promotion).
 - This is the **client-vs-agency boundary**: hand the client an *editor* login so they manage copy safely, while the agency keeps *admin* over settings/users/integrations. Applies to every site, single-tenant or multi-tenant.
+
+**Portfolio / case studies** — *implemented; see §13.10*
+- A `case-studies` collection (challenge → what-we-built → outcome, live URL, linked `services` relationship, screenshot upload, result metrics, testimonial, featured/order) → a `/work` grid + `/work/[slug]` detail pages with `CreativeWork` JSON-LD. Public read, role-based write. The reusable "portfolio" module — every client site can showcase shipped work.
+
+**Media storage (Cloudflare R2)** — *implemented; see §13.10*
+- `@payloadcms/storage-s3` points Payload's `Media` collection at **Cloudflare R2** (S3-compatible). The host's container filesystem is **ephemeral** (uploads vanish on redeploy), so object storage is mandatory for any site with images. Files are served from R2's public URL; `next.config` `images.remotePatterns` allows the R2 host for `next/image`.
 
 **Visitor tracking / attribution**
 - **PostHog** behind a first-party reverse proxy on a *neutral* subdomain (avoid analytics/tracking/posthog — ad-blockers target them).
@@ -248,6 +267,32 @@ app/
 **Cause:** Payload builds absolute email links from `config.serverURL`; if unset, the link has no scheme+host.
 **Fix:** set `serverURL: process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'` at the top of `buildConfig`. Set `NEXT_PUBLIC_SERVER_URL=https://<domain>` in the host env.
 - **Immediate unblock without redeploy:** the reset *token* is stored on the user doc (`resetPasswordToken`); build the URL by hand as `https://<domain>/admin/reset/<token>`.
+
+### 13.10 Media storage (Cloudflare R2) + the case-studies module
+**Why:** the host's container filesystem is ephemeral — local-disk uploads disappear on every redeploy. Any site with CMS images needs object storage. We use **Cloudflare R2** (S3-compatible, zero egress, free tier).
+
+**Wiring** (`payload.config.ts`):
+```ts
+s3Storage({
+  collections: { media: { disablePayloadAccessControl: true,
+    generateFileURL: ({ filename, prefix }) =>
+      [process.env.R2_PUBLIC_URL, prefix, filename].filter(Boolean).join('/') } },
+  bucket: process.env.R2_BUCKET,
+  config: { endpoint: process.env.R2_ENDPOINT, region: 'auto',
+    credentials: { accessKeyId: process.env.R2_ACCESS_KEY_ID, secretAccessKey: process.env.R2_SECRET_ACCESS_KEY } },
+})
+```
+Guard the plugin behind `process.env.R2_BUCKET` so local/CI builds without R2 still work. Add `images.remotePatterns: [{ protocol:'https', hostname:'*.r2.dev' }]` to `next.config` so `next/image` can serve R2 images.
+
+**Per-client R2 setup:**
+1. Cloudflare → **R2** → enable (card on file; free tier is $0 for normal media) → **Create bucket** (`<client>-media`).
+2. Bucket → **Settings → Public Access → R2.dev subdomain → Allow** → copy the `https://pub-….r2.dev` URL.
+3. R2 → **Manage R2 API Tokens → Create Account API token → Object Read & Write** (scope to the bucket) → copy **Access Key ID** + **Secret Access Key** (shown once).
+4. **Account ID** is the `<id>` in the S3 endpoint `https://<id>.r2.cloudflarestorage.com`.
+5. Add 5 env vars (`R2_BUCKET`, `R2_ENDPOINT`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_PUBLIC_URL`) to `.env` **and** the host (encrypt the keys).
+
+- ⚠️ **R2 gotcha:** R2 rejects per-object ACLs — do **not** set `acl` in the plugin. Make the bucket public at the bucket level (the R2.dev URL above). The `pub-….r2.dev` URL is rate-limited (fine for low traffic); attach a custom domain later for scale (requires the domain on Cloudflare DNS).
+- **Case studies:** the `case-studies` collection + `/work` pages are the reusable portfolio module (§8). Screenshots are `upload` fields → R2; everything else is CMS-editable. Seed via direct Mongo (text + `services` ObjectId refs) or the admin UI.
 
 ---
 
