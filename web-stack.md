@@ -294,6 +294,19 @@ Guard the plugin behind `process.env.R2_BUCKET` so local/CI builds without R2 st
 - ⚠️ **R2 gotcha:** R2 rejects per-object ACLs — do **not** set `acl` in the plugin. Make the bucket public at the bucket level (the R2.dev URL above). The `pub-….r2.dev` URL is rate-limited (fine for low traffic); attach a custom domain later for scale (requires the domain on Cloudflare DNS).
 - **Case studies:** the `case-studies` collection + `/work` pages are the reusable portfolio module (§8). Screenshots are `upload` fields → R2; everything else is CMS-editable. Seed via direct Mongo (text + `services` ObjectId refs) or the admin UI.
 
+### 13.11 ⚠️ Critical gotcha — stale `importMap.js` blanks the entire `/admin` in production
+**Symptom:** `/admin` (login screen included) renders a **blank white page** in production — but works perfectly in `npm run dev`. Hard refresh and incognito don't help; the page HTML is 200, all JS/CSS chunks 200, `/api/users/me` 200; Payload's *providers* mount but **no view renders, with zero console errors**.
+
+**Cause:** Payload resolves every **custom admin component** through `app/(payload)/admin/importMap.js`. Whenever you add one — a **storage plugin** (R2's `S3ClientUploadHandler`), a custom field/cell/view, etc. — that file must gain a matching entry. `payload generate:importmap` regenerates it, and `npm run dev` regenerates it on the fly (so it always *looks* fine locally), **but `next build` bakes in whatever is committed.** If the committed map is stale, production can't resolve the component, the RootProvider's component tree fails to construct, and the whole admin paints nothing.
+
+**This bites harder in our env** because the CLI is broken here: `payload generate:importmap` runs `payload.config.ts` through `tsx` under the machine's Node (e.g. **Node 26**, while the project pins **Node 22**), and the deprecated `module.register()` loader hook fails to resolve the config's extensionless `./hooks/*` imports (`ERR_MODULE_NOT_FOUND`). *Not* an iCloud-path problem — tsx resolves extensionless imports fine even with spaces/`~` in the path (verified). So either run the CLI under the pinned Node 22, or hand-maintain the map.
+
+**Diagnose:** run `npm run start` and read the boot log for `getFromImportMap: PayloadComponent not found in importMap { path: '<pkg>#<Component>' }`. That `path` string is exactly the missing map key.
+
+**Fix (hand-patch — reliable regardless of Node):** add two lines to `importMap.js` — an `import { X as X_<uniqueid> } from '<pkg>'` and a `"<pkg>#X": X_<uniqueid>` entry — then `npm run build` and confirm the login form paints under `npm run start` **before** deploying. Example (the R2 plugin): `import { S3ClientUploadHandler as ... } from '@payloadcms/storage-s3/client'` + `"@payloadcms/storage-s3/client#S3ClientUploadHandler": ...`.
+
+**Always verify the admin renders under `npm run start` after adding any plugin or custom admin component** — `next build` succeeding is *not* sufficient (the build passes; only runtime resolution fails).
+
 ---
 
 *Related: session summary `output-files/korovinai-payload-migration-session-summary-2026-05-31.md` · migration plan `output-files/korovinai-payload-migration-plan-2026-05-31.md` · original brief/plan `output-files/korovinai-website-*-2026-05-24.md`.*
