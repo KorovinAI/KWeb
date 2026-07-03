@@ -1,0 +1,14 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "findpsych-prototype",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "cd 'websites/findpsych/prototype' && PORT=3200 npm start"
+      ],
+      "port": 3200
+    }
+  ]
+}
