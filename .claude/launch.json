@@ -9,6 +9,21 @@
         "cd 'websites/findpsych/prototype' && PORT=3200 npm start"
       ],
       "port": 3200
+    },
+    {
+      "name": "output-files-preview",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "5810", "--directory", "output-files"],
+      "port": 5810
+    },
+    {
+      "name": "korovin-estate",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "cd \"$HOME/Library/Mobile Documents/com~apple~CloudDocs/KWeb/websites/agency\" && PORT=3100 npm run start"
+      ],
+      "port": 3100
     }
   ]
 }

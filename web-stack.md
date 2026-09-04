@@ -16,7 +16,7 @@ A living record of sites delivered (most recent first). The Korovin AI agency si
 |---|---|---|---|---|
 | **Korovin AI** *(reference build)* | [agency.korovin.ai](https://agency.korovin.ai) | The agency's own marketing site — canonical build of this standard | Payload CMS + Next 16 + MongoDB Atlas + DigitalOcean + Resend | ✅ Live (Jun 2026) |
 | **Arianna Buratti Psychology** | [ab-psych.com.au](https://ab-psych.com.au) | Private psychology practice (Carlton, Melbourne) — therapy, counselling, ADHD assessment, telehealth, Italian sessions | Astro on Netlify *(brochure; predates the standard stack)* | ✅ Live |
-| **MealSafe** *(Mytoxi)* | [app.mytoxi.com](https://app.mytoxi.com) | Meal-tracking web app for mould-illness recovery — "track your meals, protect your recovery" (user auth) | Web app *(stack: confirm)* | ✅ Live |
+| **myToxi** *(rebranded from MealSafe, Jul 2026)* | [mytoxi.com](https://mytoxi.com) | AI dietary-toxin tracking — meal-photo analysis across 10 toxin classes, personalised sensitivity levels, for mould-illness & dietary-sensitivity recovery. *(app.mytoxi.com is deprecated — do not link.)* | Web app *(stack: confirm)* | ✅ Live |
 
 ---
 
